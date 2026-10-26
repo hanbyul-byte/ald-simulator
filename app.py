@@ -225,6 +225,17 @@ with st.sidebar:
     st.button("공정 조건 초기화", on_click=apply_preset, args=(0,))
 
     st.divider()
+    st.subheader("두께 맵 컬러 범위")
+    ss.setdefault("cmin", 0.0)
+    ss.setdefault("cmax", 10.0)
+    cc1, cc2 = st.columns(2)
+    cc1.number_input("최소 [nm]", min_value=0.0, step=0.5, format="%.2f", key="cmin")
+    cc2.number_input("최대 [nm]", min_value=0.01, step=0.5, format="%.2f", key="cmax",
+                     help="사이클 수·온도와 관계없이 이 범위로 색이 고정됩니다. 범위를 넘는 값은 양 끝 색으로 표시돼요.")
+    if ss.cmax <= ss.cmin:
+        st.error("최대는 최소보다 커야 해요.")
+
+    st.divider()
     st.subheader("고정 상수")
     st.table({
         "상수": [x["label"] for x in CONSTS],
@@ -270,6 +281,10 @@ s0 = float(stick(T, c))
 exposure_L = P0 * t_dose * 1e6
 d_near, d_far = pts_d.min(), pts_d.max()
 
+# 두께 맵 컬러 범위 (고정값, 사이클 수와 무관)
+c_lo = float(ss.cmin)
+c_hi = float(ss.cmax) if ss.cmax > ss.cmin else c_lo + 1.0
+
 # ---------------------------------------------------------------------------
 # KPI
 # ---------------------------------------------------------------------------
@@ -296,7 +311,7 @@ def wafer_figure():
 
     fig = go.Figure()
     fig.add_trace(go.Heatmap(
-        x=xs, y=ys, z=Z, customdata=custom, colorscale=COLORSCALE, zmin=0, zmax=t_sat,
+        x=xs, y=ys, z=Z, customdata=custom, colorscale=COLORSCALE, zmin=c_lo, zmax=c_hi,
         colorbar=dict(title="두께 [nm]", thickness=12, len=0.6),
         hovertemplate=("x %{x:.2f}, y %{y:.2f} cm · Inlet %{customdata[0]:.2f} cm<br>"
                        "두께 <b>%{z:.3f}</b> nm · θ <b>%{customdata[1]:.3f}</b><br>"
@@ -403,7 +418,8 @@ with left:
         else:
             h2.error(f"미포화 · 최소 θ {th_min:.2f}")
         st.plotly_chart(wafer_figure(), use_container_width=True)
-        st.caption(f"두께 [nm] · 컬러 상한 = 현재 온도의 완전 포화 두께 ({t_sat:.2f} nm)")
+        st.caption(f"두께 [nm] · 컬러 범위 {c_lo:.2f} ~ {c_hi:.2f} nm 고정 "
+                   f"(참고: 현재 조건의 완전 포화 두께 {t_sat:.2f} nm)")
 
         with st.expander("9-Point 측정값 표"):
             st.dataframe(
