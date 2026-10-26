@@ -139,7 +139,7 @@ def clear_preset():
     ss.preset = None
 
 
-st.title("ALD 시뮬레이터")
+st.title("ALD 웨이퍼 시뮬레이터" if ss.stage == "sim" else "ALD 시뮬레이터")
 st.caption("TDMA-Hf 전구체 · Cross-flow 반응기 · Langmuir 포화 성장 모델")
 
 # ---------------------------------------------------------------------------
@@ -447,17 +447,3 @@ with right:
     with st.container(border=True):
         st.markdown(f"##### ALD 온도 창 · dose = {sig(t_dose)} s")
         st.plotly_chart(fig_win, use_container_width=True)
-
-with st.container(border=True):
-    st.markdown("**계산 모델**")
-    st.markdown(
-        """
-<div class="model-box">
-N<sub>max</sub> = c / (π r²),&nbsp;&nbsp; GPC<sub>max,0</sub> = N<sub>max</sub> · M / (ρ · N<sub>A</sub>)&nbsp;&nbsp;(c = 0.906, HfO₂: M = 210.49 g/mol, ρ = 9.68 g/cm³)<br>
-GPC(T,P) = GPC<sub>max</sub>(T) · [1 − exp(−s₀(T) · P · t<sub>dose</sub> / (√(2π m k<sub>B</sub> T) · N<sub>sites</sub>(T)))]<br>
-s₀(T) = s₀,₃₀₀ₖ · exp[−E<sub>a</sub>/R · (1/T − 1/300)],&nbsp;&nbsp; GPC<sub>max</sub>(T) = GPC<sub>max,0</sub> · exp[−(T − T<sub>on</sub>)/T<sub>scale</sub>] (T &gt; T<sub>on</sub>)<br>
-P(d) = P₀ · exp(−d / L<sub>dep</sub>),&nbsp;&nbsp; 두께 = GPC × 사이클 수 · s₀, E<sub>a</sub>, T<sub>on</sub>, T<sub>scale</sub>, L<sub>dep</sub>는 가정값이며 실측 데이터로 피팅이 필요합니다.
-</div>
-""",
-        unsafe_allow_html=True,
-    )
