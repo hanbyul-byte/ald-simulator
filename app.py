@@ -27,7 +27,9 @@ ACCENT = "#0d7f74"
 S2 = "#eb6834"
 REF = "#868d98"
 RAMP = ["#ecf8f6", "#b4e4dd", "#6fc7bb", "#1f9e8f", "#137a6e", "#0b4f48"]
-COLORSCALE = [[i / (len(RAMP) - 1), c] for i, c in enumerate(RAMP)]
+# 두께 맵 컬러: 얇음 = 빨강 → 주황 → 노랑 → 초록 → 하늘 → 파랑 = 두꺼움
+THK_RAMP = ["#d7191c", "#ff8c00", "#ffff00", "#22c55e", "#00e5ff", "#1e40ff", "#0000c8"]
+COLORSCALE = [[i / (len(THK_RAMP) - 1), c] for i, c in enumerate(THK_RAMP)]
 
 # ---------------------------------------------------------------------------
 # 모델
@@ -343,15 +345,19 @@ def wafer_figure():
 
     # 9-Point
     fig.add_trace(go.Scatter(
-        x=pts_xy[:, 0], y=pts_xy[:, 1], mode="markers+text",
+        x=pts_xy[:, 0], y=pts_xy[:, 1], mode="markers",
         marker=dict(size=9, color="white", line=dict(color="#141820", width=1.5)),
-        text=[f"{v:.2f}" for v in pts_v], textposition="top center",
-        textfont=dict(family="ui-monospace, Menlo, monospace", size=12, color="#141820"),
+        text=[f"{v:.2f}" for v in pts_v],
         customdata=np.stack([np.arange(1, 10), pts_d, pts_th], axis=-1),
         hovertemplate="Point %{customdata[0]:.0f} · Inlet %{customdata[1]:.2f} cm<br>"
                       "두께 <b>%{text}</b> nm · θ %{customdata[2]:.3f}<extra></extra>",
         showlegend=False,
     ))
+
+    for (px, py), v in zip(pts_xy, pts_v):
+        fig.add_annotation(x=px, y=py, text=f"{v:.2f}", showarrow=False, yshift=16,
+                           font=dict(family="ui-monospace, Menlo, monospace", size=12, color="#141820"),
+                           bgcolor="rgba(255,255,255,0.9)", borderpad=2)
 
     fig.update_xaxes(range=[-5.4, 5.4], visible=False)
     fig.update_yaxes(range=[-0.9, 12.3], visible=False, scaleanchor="x", scaleratio=1)
